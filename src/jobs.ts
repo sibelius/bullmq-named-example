@@ -1,8 +1,10 @@
-import Queue from 'bull';
+import { Queue } from 'bullmq';
 
 import { config } from './config';
 
-export const queue = new Queue('named', config.REDIS_HOST);
+export const QUEUE_NAME = 'named';
+
+export const queue = new Queue(QUEUE_NAME, config.REDIS_HOST);
 
 export const JOBS = {
   SEND_MESSAGE: 'SEND_MESSSAGE',

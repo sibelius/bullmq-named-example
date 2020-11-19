@@ -1,11 +1,8 @@
 {
-  "name": "bull-named-example",
+  "name": "bullmq-named-example",
   "version": "1.0.0",
   "dependencies": {
-    "bull": "^3.18.1",
-    "bull-arena": "^3.4.0",
-    "koa": "2.13.0",
-    "koa-express": "^1.1.0"
+    "bullmq": "1.10.0"
   },
   "devDependencies": {
     "@babel/cli": "7.12.1",

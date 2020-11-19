@@ -1,49 +1,35 @@
-import Arena from 'bull-arena';
-import Koa from 'koa';
-import express from 'koa-express';
-import Bull, { Job } from 'bull';
-import { config } from './config';
-import { jobs, queue } from './jobs';
-
-const app = new Koa();
+import { Worker, QueueEvents } from 'bullmq';
+import { jobs, QUEUE_NAME } from './jobs';
 
 const setupJobs = () => {
-  Object.keys(jobs).map((key) => {
-    queue.process(key, 1, jobs[key]);
+  // eslint-disable-next-line
+  const worker = new Worker(QUEUE_NAME, async job => {
+    const jobFn = jobs[job.name];
+
+    if (jobFn) {
+      jobFn(job);
+    } else {
+      console.log('job without handler: ', job);
+    }
   });
 
-  queue.on('active', (job: Job) => {
-    console.log(`active:${job.name}:${job.id}`);
+  const queueEvents = new QueueEvents(QUEUE_NAME);
+
+  queueEvents.on('waiting', ({ jobId }) => {
+    console.log(`waiting:${jobId}`);
   });
 
-  queue.on('completed', (job: Job) => {
-    console.log(`completed:${job.name}:${job.id}`);
+  queueEvents.on('completed', ({  jobId, returnvalue }) => {
+    console.log(`completed:${jobId}:${returnvalue}`);
   });
 
-  queue.on('failed', (job: Job, err: Error) => {
-    console.log(`failed:${job.name}:${job.id}`, err);
+  queueEvents.on('failed', ({ jobId }) => {
+    console.log(`failed:${jobId}`);
   });
 };
 
 const run = async () => {
   setupJobs();
-
-  const arena = Arena(
-    {
-      Bull,
-      queues: [
-        {
-          name: 'named',
-          hostId: 'named',
-        },
-      ],
-    },
-    {
-      port: config.PORT,
-    },
-  );
-
-  app.use(express(arena));
 }
 
 (async () => {
